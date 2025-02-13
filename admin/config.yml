@@ -1,0 +1,331 @@
+# local dev : https://decapcms.org/docs/working-with-a-local-git-repository/
+# when using the default proxy server port
+# comment this line when publishing online
+local_backend: true
+
+backend:
+  name: git-gateway
+  branch: main
+
+i18n:
+  # Required and can be one of multiple_folders, multiple_files or single_file
+  # multiple_folders - persists files in `<folder>/<locale>/<slug>.<extension>`
+  # multiple_files - persists files in `<folder>/<slug>.<locale>.<extension>`
+  # single_file - persists a single file in `<folder>/<slug>.<extension>`
+  structure: single_file
+
+  # Required - a list of locales to show in the editor UI
+  locales: [en, fr]
+
+  # Optional, defaults to the first item in locales.
+  # The locale to be used for fields validation and as a baseline for the entry.
+  default_locale: fr
+
+
+slug:
+  encoding: "ascii"
+  clean_accents: true
+  sanitize_replacement: "-"  
+
+site_url: https://jekyll-decap-cms.netlify.app
+
+publish_mode: simple # can be editorial_workflow
+
+show_preview_links: true
+
+media_folder: 'assets/uploads'
+
+collections:
+
+  - name: pages-fr
+    summary: "{{ order }} - {{category}} - {{title}}"
+    label: Pages FR
+    label_singular: Page FR
+    folder: pages-fr
+    create: true
+
+    sortable_fields: ['ordre', 'category', 'title']
+    fields:
+      - label: Publication
+        name: published
+        widget: boolean
+        default: false
+
+      - label: URL
+        name: permalink
+        widget: string
+        hint: De la forme "/categorie/titre-de-la-page/" Pas d'espace et pas d'accent
+
+      - label: Title
+        name: title
+        widget: string
+
+      - label: Catégorie
+        name: category
+        widget: relation
+        collection: configuration
+        file: categories
+        search_fields: ["categories.*.fr"]
+        display_fields: ["categories.*.fr"]
+        value_field: "categories.*.fr"
+
+      - label: Introduction
+        name: intro
+        widget: markdown
+
+      - label: Texte principal
+        name: body
+        widget: markdown
+
+      - label: Description technique
+        name: tech-description
+        widget: markdown  
+        required: false
+
+      - label: Tarifs
+        name: tarifs
+        widget: markdown  
+        required: false
+
+      - label: Galerie photos
+        name: gallery
+        widget: list
+        required: false
+        field: 
+          label: Image
+          name: image
+          widget: image
+          choose_url: false
+
+      - label: Ordre
+        name: order
+        widget: string
+        hint: Numérotation de 10 en 10 qui conditionne la position dans le menu
+        required: true
+
+
+  - name: pages-en
+    summary: "{{category}} - {{title}}"
+    label: Pages EN
+    label_singular: Page EN
+    folder: pages-en
+    create: true
+    sortable_fields: ['ordre', 'title']
+    fields:
+      - label: Publiée
+        name: published
+        widget: boolean
+        default: false
+
+      - label: URL
+        name: permalink
+        widget: string
+
+      - label: Catégorie
+        name: categorie
+        widget: relation
+        collection: configuration
+        file: categories
+        search_fields: ["categories.*.fr"]
+        display_fields: ["categories.*.fr"]
+        value_field: "categories.*.fr"
+
+      - label: Title
+        name: title
+        widget: string
+
+      - label: Introduction
+        name: intro
+        widget: markdown
+
+      - label: Body
+        name: body
+        widget: markdown
+
+      - label: Image principale
+        name: main_img
+        widget: image
+        choose_url: false  
+
+      - label: Galerie
+        name: gallery
+        widget: list
+        field: 
+          label: Image
+          name: image
+          widget: image
+          choose_url: false
+
+      - label: Ordre
+        name: Ordre
+        widget: text
+        hint: Numérotation de 10 en 10 qui conditionne la position dans le menu
+
+  - name: agenda
+    summary: "{{date_start | date('YYYY-MM-DD')}} - {{title}}"
+    label: Agenda
+    folder: _agenda
+    create: true
+    sortable_fields: ['date_start', 'title']
+    fields:
+      - label: Title
+        name: title
+        widget: string
+
+      - label: Description
+        name: intro
+        widget: markdown
+
+      - label: Title EN
+        name: title-en
+        widget: string
+
+      - label: Description
+        name: intro-en
+        widget: markdown
+
+      - label: Date début
+        name: date_start
+        widget: datetime
+
+      - label: Date fin
+        name: date_end
+        widget: datetime
+
+  - name: configuration
+    label: Configuration
+    files:
+
+      - label: Catégories
+        name: categories
+        file: _data/categories.yml
+        fields:
+          - label: Catégories
+            name: categories
+            identifier_field: fr
+            widget: list
+            fields:
+              - label: Nom
+                name: fr
+                widget: string
+              - label: Traduction EN
+                name: en
+                widget: string
+              - label: Est parent
+                hint: Cette catégorie est-elle un point d'entrée dans le menu, comme "Hébergements" ou "Activités"
+                name: is_parent
+                widget: boolean
+                default: true
+              - label: Menu
+                name: menu
+                hint: Dans quel menu doit apparaitre cette catégorie "main = menu principal" et "footer = menu pied de page"
+                widget: "select"
+                options: ["main", "footer"]
+
+      - label: Traductions
+        name: translations
+        file: _data/translations.yml
+        fields:
+          - label: Traductions
+            name: translations
+            identifier_field: fr
+            widget: list
+            fields:
+              - label: ID
+                name: slug
+                widget: string
+                hint: De la forme "nom-de-la-trad" Pas d'espace et pas d'accent
+              - label: Texte FR
+                name: fr
+                widget: markdown                    
+              - label: Traduction EN
+                name: en
+                widget: markdown                    
+
+
+      - label: Options
+        name: options
+        file: _data/options.yml
+        fields:
+          - label: Options
+            name: options
+            widget: list
+            fields:
+              - label: Name
+                name: name
+                widget: string
+              - label: Description
+                name: description
+                widget: markdown
+
+  - name: 'blog'
+    label: 'Blog'
+    folder: '_posts/'
+    create: true
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    editor:
+      preview: false
+    fields:
+      - { label: 'Layout', name: 'layout', widget: 'hidden', default: 'post' }
+      - { label: 'Title', name: 'title', widget: 'string' }
+      - { label: 'Publish Date', name: 'date', widget: 'datetime' }
+      - {
+          label: 'Author',
+          name: 'author',
+          widget: 'relation',
+          collection: 'authors',
+          display_fields: [name],
+          search_fields: [name],
+          value_field: 'name',
+        }      
+      - { label: 'Body', name: 'body', widget: 'markdown' }
+
+  - name: 'authors'
+    label: 'Authors'
+    label_singular: 'Author'
+    folder: '_authors/'
+    create: true
+    identifier_field: name
+    editor:
+      preview: false
+    fields:
+      - { label: 'Pseudo', name: 'pseudo', widget: 'string' }
+      - { label: 'Full Name', name: 'name', widget: 'string' }
+      - { label: 'Bio', name: 'bio', widget: 'markdown', required: False }
+      - { label: 'Image', name: 'image', widget: 'image', required: False }
+
+  - name: 'galleries'
+    label: 'Galleries'
+    label_singular: 'Gallery'
+    folder: '_galleries'
+    path: '{{slug}}/index'
+    media_folder: ''
+    public_folder: ''
+    create: True
+    editor:
+      preview: false
+    fields:
+      - { label: 'Layout', name: 'layout', widget: 'hidden', default: 'gallery' }
+      - { label: 'Title', name: 'title', widget: 'string' }
+      - { label: 'Description', name: 'description', widget: 'markdown' }
+      - { label: "Published", name: "published", widget: "boolean", default: true }
+      - { label: "Date", name: "date", widget: "datetime", default: "{{now}}", format: "YYYY/MM/DD", picker_utc: false }
+      - { label: "Featured Image", name: "thumbnail", widget: "image", choose_url: true }
+      - {
+          label: 'Author',
+          name: 'author',
+          widget: 'relation',
+          collection: 'authors',
+          display_fields: [name],
+          search_fields: [name],
+          value_field: 'name',
+        }      
+      - label: 'Images'
+        name: 'images'
+        widget: 'list'
+        fields: 
+          - { label: 'Image', name: 'url', widget: 'image' }
+          - { label: 'Caption', name: 'caption', widget: 'string' }
+
+
+
